@@ -35,6 +35,13 @@ public class AuthorizationController : ControllerBase
     var request = HttpContext.GetOpenIddictServerRequest()
                   ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
+    if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
+    {
+      var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+
+      return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+    }
+
     if (request.IsPasswordGrantType())
     {
       var user = await _userManager.FindByNameAsync(request.Username);
@@ -61,29 +68,22 @@ public class AuthorizationController : ControllerBase
         return Forbid(properties, "OpenIddict.Server.AspNetCore");
       }
 
-
-      // Cria um novo principal (identidade) com os claims do usuário
       var principal = await _signInManager.CreateUserPrincipalAsync(user);
 
       var roles = await _userManager.GetRolesAsync(user);
 
-      // 2. Adiciona as claims de role ao Principal
       var identity = principal.Identities.FirstOrDefault();
       if (identity == null) throw new InvalidOperationException("Identity não encontrada.");
 
       foreach (var role in roles)
       {
-        // Adiciona a claim 'role' (necessária para autorização)
         identity.AddClaim(OpenIddictConstants.Claims.Role, role, OpenIddictConstants.Destinations.AccessToken);
       }
 
-      // Opcional: Adicionar a claim 'name' para fácil identificação
       identity.AddClaim(OpenIddictConstants.Claims.Name, user.UserName!, OpenIddictConstants.Destinations.AccessToken);
-      // Retorna a resposta do token para o cliente
+
       return SignIn(principal, "OpenIddict.Server.AspNetCore");
     }
-
-    // ... (Adicione a lógica para outros fluxos como Client Credentials ou Refresh Token)
 
     throw new InvalidOperationException("O fluxo de concessão não é suportado.");
   }
@@ -107,20 +107,14 @@ public class AuthorizationController : ControllerBase
       return Challenge(properties, IdentityConstants.ApplicationScheme);
     }
 
-    // Se o usuário estiver logado e a aplicação cliente for autorizada:
     var principal = result.Principal;
 
-    // Se for uma requisição de consentimento (o cliente não tem acesso aos escopos):
-    // TODO: Implementar a lógica de consentimento aqui. Por enquanto, concedemos automaticamente.
-
-    // Cria o principal que será usado para emitir o código de autorização
     var identity = principal.Identities.FirstOrDefault();
     if (identity == null)
     {
       return Forbid(new AuthenticationProperties(), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
-    // Adiciona claims de escopos e outros claims necessários
     identity.SetScopes(request.GetScopes());
     identity.SetResources(request.GetResources());
 
@@ -130,23 +124,40 @@ public class AuthorizationController : ControllerBase
       identity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, userId));
     }
 
-    // Finaliza a requisição de autorização, emitindo o código de autorização
+    var user = await _userManager.FindByIdAsync(userId);
+    if (user == null)
+    {
+      return Forbid(new AuthenticationProperties(), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+    }
+
+    var roles = await _userManager.GetRolesAsync(user);
+    foreach (var role in roles)
+    {
+      identity.AddClaim(OpenIddictConstants.Claims.Role, role);
+    }
+
+    identity.SetDestinations(claim =>
+    {
+      if (claim.Type == OpenIddictConstants.Claims.Role &&
+          principal.HasScope("roles"))
+      {
+        return [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken];
+      }
+
+      return [OpenIddictConstants.Destinations.AccessToken];
+    });
+
     return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
   }
 
-  // [HttpGet("logout")]
-  // public IActionResult Logout() => View(); // Exibe uma página de confirmação de logout
-
+  [HttpGet("logout")]
   [HttpPost("logout")]
-  [ValidateAntiForgeryToken]
   public async Task<IActionResult> LogoutPost()
   {
-    // Encerra a sessão de ASP.NET Identity
     await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
-    // Retorna a resposta de logout para o OpenIddict
     return SignOut(
-        properties: new AuthenticationProperties { RedirectUri = "/" }, // Redireciona para a página inicial
+        properties: new AuthenticationProperties { RedirectUri = "/" },
         authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
   }
 
@@ -157,21 +168,14 @@ public class AuthorizationController : ControllerBase
   {
     var claims = new Dictionary<string, object>(StringComparer.Ordinal)
     {
-      // O "sub" (subject) é obrigatório
       [OpenIddictConstants.Claims.Subject] = User.FindFirstValue(OpenIddictConstants.Claims.Subject)!,
-
-      // Adicione outros claims que foram solicitados pelo cliente (escopos)
-      ["local_ip"] = "192.168.1.1" // Exemplo de claim customizado
+      ["local_ip"] = "192.168.1.1"
     };
 
     if (User.HasScope(OpenIddictConstants.Scopes.Email))
     {
       claims[OpenIddictConstants.Claims.Email] = User.FindFirstValue(OpenIddictConstants.Claims.Email)!;
     }
-
-    // Você pode injetar o UserManager para buscar claims adicionais
-    // var user = await _userManager.GetUserAsync(User);
-    // claims["nome_completo"] = user.NomeCompleto;
 
     return Ok(claims);
   }

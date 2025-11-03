@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AspNetCore.Identity.MongoDbCore.Models;
 using Guiguiflix.Identity.Settings;
 using Guiguimmo.Identity.Models;
 using Microsoft.AspNetCore.Identity;
@@ -16,16 +15,13 @@ namespace Guiguimmo.Identity.HostedServices;
 public class IdentitySeedHostedService : IHostedService
 {
   private readonly IServiceScopeFactory _serviceScopeFactory;
-  private readonly ILogger<IdentitySeedHostedService> _logger;
   private readonly IdentitySettings _settings;
 
   public IdentitySeedHostedService(
       IServiceScopeFactory serviceScopeFactory,
-      ILogger<IdentitySeedHostedService> logger,
       IOptions<IdentitySettings> identityOptions)
   {
     _serviceScopeFactory = serviceScopeFactory;
-    _logger = logger;
     _settings = identityOptions.Value;
   }
 
@@ -48,10 +44,15 @@ public class IdentitySeedHostedService : IHostedService
             new Uri("http://localhost:3000/callback"),
             new Uri("http://localhost:3000/silent-renew.html")
           },
+        PostLogoutRedirectUris =
+          {
+            new Uri("http://localhost:3000/")
+          },
         Permissions =
           {
             OpenIddictConstants.Permissions.Endpoints.Token,
             OpenIddictConstants.Permissions.Endpoints.Authorization,
+            OpenIddictConstants.Permissions.Endpoints.EndSession,
             OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
             OpenIddictConstants.Permissions.GrantTypes.Password,
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
@@ -61,6 +62,7 @@ public class IdentitySeedHostedService : IHostedService
             OpenIddictConstants.Permissions.Prefixes.Scope + "offline_access",
             OpenIddictConstants.Permissions.Prefixes.Scope + "openid",
             OpenIddictConstants.Permissions.Prefixes.Scope + "profile",
+            OpenIddictConstants.Permissions.Prefixes.Scope + "roles",
           }
       }, cancellationToken);
     }
@@ -68,7 +70,7 @@ public class IdentitySeedHostedService : IHostedService
     var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    string[] roleNames = { "Admin", "Client", "Member" };
+    string[] roleNames = { "admin", "client", "member" };
 
     foreach (var roleName in roleNames)
     {
@@ -91,8 +93,8 @@ public class IdentitySeedHostedService : IHostedService
       var result = await userManager.CreateAsync(adminUser, _settings.AdminUserPassword);
       if (result.Succeeded)
       {
-        await userManager.AddToRoleAsync(adminUser, "Admin");
-        await userManager.AddToRoleAsync(adminUser, "Member");
+        await userManager.AddToRoleAsync(adminUser, "admin");
+        await userManager.AddToRoleAsync(adminUser, "member");
       }
     }
   }

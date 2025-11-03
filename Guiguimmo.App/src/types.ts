@@ -5,5 +5,6 @@ export interface IOidcUser {
   profile: Record<string, unknown> & {
     name?: string;
     sub: string;
+    role?: string[];
   };
 }

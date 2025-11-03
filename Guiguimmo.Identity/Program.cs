@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenIddict.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,15 +24,7 @@ builder.Services.Configure<IdentitySettings>(builder.Configuration.GetSection(na
     (
         mongoDbSettings.ConnectionString,
         serviceSettings.ServiceName
-    )
-    ;//.AddDefaultTokenProviders();
-
-// builder.Services.AddJwtBearerAuthentication()
-//     .AddCookie(options =>
-//     {
-//         options.LoginPath = "/Account/Login";
-//         options.ReturnUrlParameter = "ReturnUrl";
-//     });
+    );
 
 builder.Services.AddOpenIddict()
     .AddCore(options =>
@@ -43,6 +36,8 @@ builder.Services.AddOpenIddict()
     {
         options.SetAuthorizationEndpointUris("connect/authorize")
                .SetTokenEndpointUris("connect/token")
+               .SetUserInfoEndpointUris("connect/userinfo")
+               .SetEndSessionEndpointUris("connect/logout")
                .AllowAuthorizationCodeFlow()
                .AllowPasswordFlow()
                .AllowRefreshTokenFlow()
@@ -51,7 +46,18 @@ builder.Services.AddOpenIddict()
                .AddEphemeralSigningKey()
                .UseAspNetCore()
                .EnableTokenEndpointPassthrough()
-               .EnableAuthorizationEndpointPassthrough();
+               .EnableAuthorizationEndpointPassthrough()
+               .EnableUserInfoEndpointPassthrough()
+               .EnableEndSessionEndpointPassthrough();
+
+        options.RegisterScopes(
+            "api_acesso",
+            "roles",
+            OpenIddictConstants.Scopes.Email,
+            OpenIddictConstants.Scopes.Profile,
+            OpenIddictConstants.Scopes.OfflineAccess,
+            OpenIddictConstants.Scopes.OpenId
+        );
     })
     .AddValidation(options =>
     {

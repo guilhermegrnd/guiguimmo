@@ -22,7 +22,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // const [videos, setVideos] = useState<Video[]>([]);
 
   const handleUserLoaded = useCallback((loadedUser: IOidcUser | null) => {
-    console.log('handleUserLoaded', loadedUser);
     setUser(loadedUser);
     setIsAuthenticated(!!loadedUser);
     setLoading(false);
@@ -70,9 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const processSigninCallback = useCallback(async (url = globalThis.location.href) => {
     try {
-      console.log('processSigninCallback', url);
       const signedInUser = await userManager.signinRedirectCallback(url);
-      console.log('Signed in user:', signedInUser);
       handleUserLoaded(signedInUser as IOidcUser);
       globalThis.history.replaceState({}, document.title, globalThis.location.origin);
     } catch (err) {
