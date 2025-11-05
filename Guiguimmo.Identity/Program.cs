@@ -76,11 +76,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     const string allowedOriginsSetting = "AllowedOrigin";
+    var origins = builder.Configuration[allowedOriginsSetting].Split(';', System.StringSplitOptions.RemoveEmptyEntries);
     app.UseCors(policyBuilder =>
     {
-        policyBuilder.WithOrigins(builder.Configuration[allowedOriginsSetting])
+        policyBuilder.WithOrigins(origins)
+            .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowCredentials();
     });
 }
 else

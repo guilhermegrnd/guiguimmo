@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { FC } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom'
+import { ROUTE_PATHS } from '../routes/paths'
 
 export const SigninOidcCallback: FC = () => {
   const { processSigninCallback } = useAuth();
@@ -16,7 +17,7 @@ export const SigninOidcCallback: FC = () => {
     hasProcessedCallback.current = true;
 
     processSigninCallback()
-      .then(_ => navigate('/'))
+      .then(_ => navigate(ROUTE_PATHS.HOME))
       .catch(err => console.error('Error in SigninOidcCallback:', err));
   }, [processSigninCallback]);
 

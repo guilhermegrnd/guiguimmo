@@ -10,12 +10,10 @@ interface ProtectedRouteProps {
 }
 
 const ensureHasRole = (user: IOidcUser | null, roles?: string[]) => {
-  console.log('ensureHasRole', { user, roles });
   if (!roles || roles.length === 0) return true;
   if (!user) return false;
   const profile = (user.profile ?? {}) as Record<string, unknown>;
   const roleValue = profile['role'] ?? profile['roles'] ?? undefined;
-  console.log('User role value:', roleValue);
   if (roleValue === undefined || roleValue === null) return false;
   if (Array.isArray(roleValue)) return roles.some(r => (roleValue as unknown[]).includes(r));
   if (typeof roleValue === 'string') return roles.includes(roleValue);
