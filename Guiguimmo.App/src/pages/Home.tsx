@@ -1,22 +1,25 @@
 import type { FC } from 'react'
-import { GameClient } from './GameClient'
+import { CharacterSelection } from '../components/CharacterSelection'
+import { useAuth } from '../context/AuthContext'
 
 export const Home: FC = () => {
+  const { signOut } = useAuth();
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-['Inter']">
-      <script src="https://cdn.tailwindcss.com"></script>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <header className="py-6 border-b border-indigo-100 mb-8 flex justify-between items-center">
-        <h1 className="text-3xl font-extrabold text-indigo-700">Home Page</h1>
+    <div className="min-h-screen flex flex-col">
+      <header className="fixed top-0 left-0 w-full z-10">
+        <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
+          <h1 className="text-xl">Guiguimmo</h1>
+          <button
+            onClick={signOut}
+            className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-150 transform hover:scale-[1.02]"
+          >
+            Sign Out
+          </button>
+        </nav>
       </header>
-      <main className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-10">
-          <h2 className="text-3xl font-bold text-green-600 mb-6">Welcome to the Home Page! 🎉</h2>
-          <p className="text-lg tex]t-gray-700">
-            You have successfully accessed a protected route.
-          </p>
-          <GameClient />
-        </div>
+      <main> 
+        <CharacterSelection />
       </main>
     </div>
   );

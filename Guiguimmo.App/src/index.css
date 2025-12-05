@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -13,56 +15,48 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.map-container {
+    /* Set the tile size and repeat count based on the C# map dimensions */
+    display: grid;
+    grid-template-columns: repeat(24, 4rem); /* Assuming 8 tiles wide, 4rem each */
+    grid-template-rows: repeat(10, 4rem);    /* Assuming 5 tiles high, 4rem each */
+    position: relative; /* Crucial for positioning players/monsters */
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.tile {
+    width: 4rem;
+    height: 4rem;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.tile-1 { background-color: #8c7; } /* Grass */
+.tile-2 { background-color: #444; } /* Wall */
+.tile-3 { background-color: #4af; } /* Water */
+
+.entity-sprite {
+    position: absolute;
+    width: 4rem;
+    height: 4rem;
+    background-color: red; /* Placeholder for player/monster sprite */
+    z-index: 10;
+    /* You will move this based on player X/Y */
+}
+
+.message-bubble {
+    position: absolute;
+    bottom: 100%; /* Position above the entity */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+    z-index: 20;
 }

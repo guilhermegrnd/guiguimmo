@@ -13,9 +13,6 @@ export const Login: FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-['Inter']">
-      <script src="https://cdn.tailwindcss.com"></script>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
       <header className="py-6 border-b border-indigo-100 mb-8 flex justify-between items-center">
         <h1 className="text-3xl font-extrabold text-indigo-700">React OIDC Client (TSX)</h1>
         {isAuthenticated && (

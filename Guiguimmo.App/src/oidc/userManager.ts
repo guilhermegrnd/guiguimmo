@@ -5,7 +5,7 @@ const oidcConfig: UserManagerSettings = {
   client_id: 'my-client-app',
   redirect_uri: `${globalThis.location.origin}/callback`,
   post_logout_redirect_uri: `${globalThis.location.origin}/`,
-  scope: 'openid offline_access roles',
+  scope: 'openid offline_access roles api_acesso',
   response_type: 'code',
   client_secret: 'uma-chave-secreta-forte',
   automaticSilentRenew: true,

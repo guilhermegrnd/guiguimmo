@@ -7,7 +7,6 @@ interface AuthContextType {
   user: IOidcUser | null;
   isAuthenticated: boolean;
   loading: boolean;
-  // videos: Video[];
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   processSigninCallback: (url?: string) => Promise<void>;
@@ -16,10 +15,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<IOidcUser | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  // const [videos, setVideos] = useState<Video[]>([]);
+  const [user, setUser] = useState<IOidcUser | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const handleUserLoaded = useCallback((loadedUser: IOidcUser | null) => {
     setUser(loadedUser);
@@ -27,11 +25,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
 
     // if (loadedUser?.access_token) {
-    //   fetchProtectedVideos(loadedUser.access_token)
-    //     .then((data) => setVideos(data))
-    //     .catch((err) => console.error('Error fetching videos in AuthProvider:', err));
+    //   fetchCharacters(loadedUser.access_token)
+    //     .then((data) => setCharacters(data))
+    //     .catch((err) => console.error('Error fetching characters in AuthProvider:', err))
     // } else {
-    //   setVideos([]);
+    //   setCharacters([])
     // }
   }, []);
 
@@ -79,7 +77,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [handleUserLoaded]);
 
-  const value = useMemo(() => ({ user, isAuthenticated, loading, signIn, signOut, processSigninCallback }), [user, isAuthenticated, loading, signIn, signOut, processSigninCallback]);
+  const value = useMemo(() => ({ 
+    user, isAuthenticated, loading, signIn, signOut, processSigninCallback 
+  }), [user, isAuthenticated, loading, signIn, signOut, processSigninCallback]);
 
   return (
     <AuthContext.Provider value={value}>
