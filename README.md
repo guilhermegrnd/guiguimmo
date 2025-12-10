@@ -48,7 +48,7 @@ A modern, multiplayer online RPG (MMORPG) built with a microservices architectur
 
 2. **Add Common package as source**
    ```bash
-   dotnet nuget add source ./package -n guiguimmopackages
+   dotnet nuget add source ./packages -n guiguimmopackages
    ```
 
 3. **Start infrastructure services**
