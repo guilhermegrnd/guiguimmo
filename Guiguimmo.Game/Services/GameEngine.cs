@@ -164,10 +164,8 @@ public class GameEngine : BackgroundService
           var parts = action.Payload.Split(',');
           if (parts.Length == 2 && int.TryParse(parts[0], out int destX) && int.TryParse(parts[1], out int destY))
           {
-            // Calculate the new path
             var newPathSteps = FindPath(Character.Position.X, Character.Position.Y, destX, destY);
 
-            // Clear any existing path and set the new one
             Character.CurrentPath.Clear();
             foreach (var step in newPathSteps)
             {
