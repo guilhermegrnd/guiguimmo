@@ -2,8 +2,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 using Guiguimmo.Game.Dtos;
 using Guiguimmo.Game.Models;
 using Guiguimmo.Utils;
@@ -21,6 +23,8 @@ public class GameEngine : BackgroundService
 
   private const int TicksPerSecond = 2; //20 ticks per second
   private readonly TimeSpan _tickTime = TimeSpan.FromMilliseconds(1000 / TicksPerSecond);
+
+  private readonly ProducerConfig config = new() { BootstrapServers = "localhost:9092" };
 
   public GameEngine(IGameHubContext hubContext)
   {
@@ -117,6 +121,24 @@ public class GameEngine : BackgroundService
             Character.Position.X = newX;
             Character.Position.Y = newY;
             // Optional: You could add logic here for walking on special tiles (e.g., healing on a fire tile)
+
+            using (var producer = new ProducerBuilder<Null, string>(config).Build())
+            {
+              var messageJson = JsonSerializer.Serialize(new
+              {
+                ActionType = "Move",
+                CharacterId = Character.Id,
+                ActionData = new
+                {
+                  X = newX,
+                  Y = newY
+                }
+              });
+
+              var result = await producer.ProduceAsync("character-actions", new Message<Null, string> { Value = messageJson });
+
+              Console.WriteLine($"Delivered '{result.Value}' to {result.TopicPartitionOffset}");
+            }
           }
           else
           {

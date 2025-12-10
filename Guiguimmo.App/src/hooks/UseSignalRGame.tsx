@@ -74,8 +74,9 @@ export const useSignalRGame = (token: string): GameHookResult => {
     return () => {
       connection.off("ReceivegameState");
       connection.off("ReceiveMessage");
-      // Optionally stop the connection fully if needed
-      // connection.stop(); 
+      connection.stop()
+        .then(() => console.log("SignalR Disconnected."))
+        .catch(err => console.error("SignalR Disconnect Error: ", err));
     };
   }, [connection]);
 

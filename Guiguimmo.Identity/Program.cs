@@ -101,7 +101,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     const string allowedOriginsSetting = "AllowedOrigin";
-    var origins = builder.Configuration[allowedOriginsSetting].Split(';', System.StringSplitOptions.RemoveEmptyEntries);
+    var origins = builder.Configuration[allowedOriginsSetting].Split(';', StringSplitOptions.RemoveEmptyEntries);
     app.UseCors(policyBuilder =>
     {
         policyBuilder.WithOrigins(origins)

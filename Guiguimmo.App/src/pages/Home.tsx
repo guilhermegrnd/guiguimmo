@@ -7,7 +7,7 @@ export const Home: FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="fixed top-0 left-0 w-full z-10">
+      {/* <header className="fixed top-0 left-0 w-full z-10">
         <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
           <h1 className="text-xl">Guiguimmo</h1>
           <button
@@ -17,7 +17,7 @@ export const Home: FC = () => {
             Sign Out
           </button>
         </nav>
-      </header>
+      </header> */}
       <main> 
         <CharacterSelection />
       </main>

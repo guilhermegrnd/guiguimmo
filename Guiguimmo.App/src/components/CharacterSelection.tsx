@@ -30,13 +30,13 @@ const CharacterCard: FC<CharacterCardProps> = ({ character, isSelected, onClick 
       `}
     >
       <h3 className="text-xl sm:text-2xl font-bold text-yellow-300 mb-1">{character.name}</h3>
-      <p className="text-sm text-gray-300">{character.class}</p>
+      <p className="text-sm text-gray-300">{character.classId}</p>
     </div>
   );
 };
 
 export const CharacterSelection: FC = () => {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const [hasJoined, setHasJoined] = useState<boolean>(false)
   const [selectedCharacter, setSelectedCharacter] = useState<Character | undefined>(undefined)
   const [isJoining, setIsJoining] = useState<boolean>(false)
@@ -49,33 +49,6 @@ export const CharacterSelection: FC = () => {
   const [gendersData, setGendersData] = useState<Gender[]>([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // const { 
-  //   data: raceListData, 
-  //   loading: raceListLoading, 
-  //   error: raceListError, 
-  //   fetchData: fetchRacesList 
-  // } = useApi<Race[]>();
-
-  // const { 
-  //   data: classListData, 
-  //   loading: classListLoading, 
-  //   error: classListError, 
-  //   fetchData: fetchClassesList 
-  // } = useApi<Class[]>();
-
-  // const { 
-  //   data: genderListData, 
-  //   loading: genderListLoading, 
-  //   error: genderListError, 
-  //   fetchData: fetchGendersList 
-  // } = useApi<Gender[]>();
-
-  // useEffect(() => {
-  //   fetchRacesList(user?.access_token!,`${GLOBAL_SERVER_URL}/v1/races`); 
-  //   fetchClassesList(user?.access_token!,`${GLOBAL_SERVER_URL}/v1/classes`);
-  //   fetchGendersList(user?.access_token!,`${GLOBAL_SERVER_URL}/v1/genders`);
-  // }, [fetchRacesList, fetchClassesList, fetchGendersList, user?.access_token]);
 
   useEffect(() => {
     async function fetchMultipleData() {
@@ -129,9 +102,17 @@ export const CharacterSelection: FC = () => {
     setJoinMessage('Welcome back! Select a character to join the hub.');
   };
 
+  const handleSelectCharacter = (character: Character) => {
+    setSelectedCharacter(character);
+  }
+
   if (hasJoined && selectedCharacter) {
     return (
-      <GameLobby character={selectedCharacter} handleLogout={handleLogout} />
+      <GameLobby 
+        character={selectedCharacter} 
+        race={(racesData.find(r => r.id === selectedCharacter.raceId)?.name || 'unknown').toLowerCase()} 
+        gender={(gendersData.find(r => r.id === selectedCharacter.genderId)?.name || 'unknown').toLowerCase()} 
+        handleLogout={handleLogout} />
     );
   }
 
@@ -140,28 +121,6 @@ export const CharacterSelection: FC = () => {
   }
 
   if (isCreatingCharacter) {
-
-    // const isCharactersLoading = useMemo(() => 
-    //   raceListLoading || classListLoading || genderListLoading,
-    //   [raceListLoading, classListLoading, genderListLoading]
-    // );
-
-    // const hasError = useMemo(() => 
-    //   raceListError || classListError || genderListError,
-    //   [raceListError, classListError, genderListError]
-    // );
-
-    // if (isCharactersLoading) {
-    //   return <div><p>Loading all dashboard data...</p></div>;
-    // }
-
-    // if (hasError) {
-    //   return <div><p>One or more sections failed to load. Please try again.</p></div>;
-    // }
-
-    // if (!raceListData || !classListData || !genderListData) {
-    //     return <div><p>Data not available for one or more sections.</p></div>;
-    // }
 
     const handleCreateCharacter = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -253,73 +212,86 @@ export const CharacterSelection: FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white font-inter p-4 sm:p-8 flex items-center justify-center">
-      <div className="w-full max-w-5xl bg-gray-800/90 backdrop-blur-sm p-6 sm:p-10 rounded-3xl shadow-2xl border border-gray-700">
-        
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-linear-to-r from-yellow-300 to-red-500 mb-2">
-          Choose Your Character
-        </h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {charactersData.map((char) => (
-            <CharacterCard
-              key={char.id}
-              character={char}
-              isSelected={selectedCharacter?.id === char.id}
-              onClick={setSelectedCharacter}
-            />
-          ))}
-        </div>
-
-        {selectedCharacter && (
-          <div className="mb-8 p-4 bg-gray-700/50 rounded-lg border border-gray-600 text-center max-w-xl mx-auto">
-            <p className="text-lg font-semibold text-yellow-300">
-              Selected Character: <span className="text-white">{selectedCharacter.name}</span>
-            </p>
-          </div>
-        )}
-
-        <div className="flex justify-between">
+    <>
+      <header className="fixed top-0 left-0 w-full z-10">
+        <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
+          <h1 className="text-xl">Guiguimmo</h1>
           <button
-            onClick={() => setIsCreatingCharacter(true)}
-            className={`
-              px-12 py-4 text-xl font-bold uppercase rounded-full transition-all duration-300 
-              shadow-lg tracking-wider bg-green-500 hover:bg-green-600 text-gray-900 hover:shadow-green-500/50 transform hover:-translate-y-1 cursor-pointer
-            `}
+            onClick={signOut}
+            className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-150 transform hover:scale-[1.02]"
           >
-            Create New Character
+            Sign Out
           </button>
-          <button
-            onClick={handleJoinGame}
-            disabled={selectedCharacter === undefined || isJoining}
-            className={`
-              px-12 py-4 text-xl font-bold uppercase rounded-full transition-all duration-300 
-              shadow-lg tracking-wider
-              ${selectedCharacter && !isJoining
-                ? 'bg-green-500 hover:bg-green-600 text-gray-900 hover:shadow-green-500/50 transform hover:-translate-y-1 cursor-pointer'
-                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              }
-            `}
-          >
-            {isJoining ? (
-              <div className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Joining...
-              </div>
-            ) : 'Join Game Hub'}
-          </button>
+        </nav>
+      </header> 
+      <div className="min-h-screen bg-gray-900 text-white font-inter p-4 sm:p-8 flex items-center justify-center">
+        <div className="w-full max-w-5xl bg-gray-800/90 backdrop-blur-sm p-6 sm:p-10 rounded-3xl shadow-2xl border border-gray-700">
           
-          {joinMessage && (
-            <p className="mt-4 text-sm font-medium text-yellow-400 transition-opacity duration-300">
-              {joinMessage}
-            </p>
-          )}
-        </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-linear-to-r from-yellow-300 to-red-500 mb-2">
+            Choose Your Character
+          </h1>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {charactersData.map((char) => (
+              <CharacterCard
+                key={char.id}
+                character={char}
+                isSelected={selectedCharacter?.id === char.id}
+                onClick={handleSelectCharacter}
+              />
+            ))}
+          </div>
+
+          {selectedCharacter && (
+            <div className="mb-8 p-4 bg-gray-700/50 rounded-lg border border-gray-600 text-center max-w-xl mx-auto">
+              <p className="text-lg font-semibold text-yellow-300">
+                Selected Character: <span className="text-white">{selectedCharacter.name}</span>
+              </p>
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <button
+              onClick={() => setIsCreatingCharacter(true)}
+              className={`
+                px-12 py-4 text-xl font-bold uppercase rounded-full transition-all duration-300 
+                shadow-lg tracking-wider bg-green-500 hover:bg-green-600 text-gray-900 hover:shadow-green-500/50 transform hover:-translate-y-1 cursor-pointer
+              `}
+            >
+              Create New Character
+            </button>
+            <button
+              onClick={handleJoinGame}
+              disabled={selectedCharacter === undefined || isJoining}
+              className={`
+                px-12 py-4 text-xl font-bold uppercase rounded-full transition-all duration-300 
+                shadow-lg tracking-wider
+                ${selectedCharacter && !isJoining
+                  ? 'bg-green-500 hover:bg-green-600 text-gray-900 hover:shadow-green-500/50 transform hover:-translate-y-1 cursor-pointer'
+                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }
+              `}
+            >
+              {isJoining ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Joining...
+                </div>
+              ) : 'Join Game Hub'}
+            </button>
+            
+            {joinMessage && (
+              <p className="mt-4 text-sm font-medium text-yellow-400 transition-opacity duration-300">
+                {joinMessage}
+              </p>
+            )}
+          </div>
+
+        </div>
       </div>
-    </div>
+    </>
   );
 };

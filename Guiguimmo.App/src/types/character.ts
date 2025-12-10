@@ -1,7 +1,9 @@
 export interface Character {
   id: string;
   name: string;
-  class: string;
+  raceId: string;
+  genderId: string;
+  classId: string;
   color: string;
   health: number;
   level: number;

@@ -10,5 +10,61 @@ services:
       - mongodbdata:/data/db
     restart: unless-stopped
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      # Zookeeper configuration
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      # Link to Zookeeper
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Set the broker ID
+      KAFKA_BROKER_ID: 1
+      # Listener Configuration (Crucial for Docker)
+      # This is the address that containers use to talk to the broker.
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      # This is the address that external applications (like your local C# app) use.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      #KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
+      # Map the listener names to their protocols
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      # The port used internally by the Docker network
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Increase memory limit to avoid OOM errors
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms512m" 
+      # --- CRITICAL FIX: Set internal topic replication to 1 ---
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # Optional: Also set transaction state replication factor to 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1 
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    environment:
+      # Configure the UI to point to the Kafka broker's internal address
+      KAFKA_CLUSTERS_0_NAME: local-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      # UI can also connect to the Zookeeper
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
 volumes:
   mongodbdata:
